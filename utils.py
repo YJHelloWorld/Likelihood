@@ -169,6 +169,9 @@ def calc_vecp_test(cl_hat,cl_f, cl_th, Nf, Nmodes = None):
     Nf : number of frequency channels;
     Nmodes: consider different modes like EE EB and BB; Only BB for now. 2020.07.04
     
+    Output
+    ---------------------------
+    Xall : rearanged to one line,  as like lbin first, then nf_ind 
     '''
     lbin = len(cl_hat); nf_ind = int(Nf*(Nf+1)/2)
     
@@ -208,6 +211,8 @@ def testL(cl_hat,cl_f, cl_th, Nf, M, Nmodes = None, sbin = None):
     ------------------------------
     
     cl_hat,cl_f, cl_th, Nf, M, Nmodes = None, sbin = None
+    
+    M: covariance of all X arrays, reordered to be a line for each Xall...
     '''
     
     Xa = (calc_vecp_test(cl_hat,  cl_f,cl_th, Nf = Nf))
