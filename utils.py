@@ -64,6 +64,7 @@ def calc_vecp(l,C_l_hat,C_fl, C_l):
 
     return (X)
 
+
 #def g(x):
 #    #  sign(x-1) \sqrt{ 2(x-ln(x) -1 }  
 #    return np.sign(x-1) * np.sqrt( 2* (x - np.log(x) -1) )
@@ -158,3 +159,69 @@ def evaluateLikelihood(C_l,C_l_hat,C_fl,M_inv, sbin = 0):
 
     logL = np.real(logL)
     return logL
+
+
+def calc_vecp_test(cl_hat,cl_f, cl_th, Nf, Nmodes = None):
+    '''
+    Input
+    ---------------------------
+    Cl : (lbin, Nf, Nf);
+    Nf : number of frequency channels;
+    Nmodes: consider different modes like EE EB and BB; Only BB for now. 2020.07.04
+    
+    '''
+    lbin = len(cl_hat); nf_ind = int(Nf*(Nf+1)/2)
+    
+    Xall = np.ones(lbin*nf_ind)    
+    for l in range(lbin):
+    
+        cl_f_12 = sqrtm(cl_f[l])
+        cl_inv = LA.pinv(cl_th[l])
+        cl_inv_12= sqrtm(cl_inv)
+        # the order is inverted compared to matlab hamimeche_lewis_likelihood.m line 19
+
+        # line 20 of hamimeche_lewis_likelihood.m
+        res = np.dot(cl_inv_12, np.dot(cl_hat[l], cl_inv_12))
+
+        [d, u] = LA.eigh(res)
+        d = np.diag(d)  # noticed that python returns the eigenvalues as a vector, not a matrix
+        #np. dot( u, np.dot( np.diag(d), LA.inv(u))) should be equals to res
+        # real symmetric matrices are diagnalized by orthogonal matrices (M^t M = 1)  
+
+        # this makes a diagonal matrix by applying g(x) to the eigenvalues, equation 10 in Barkats et al
+        gd = np.sign(np.diag(d) - 1) * np.sqrt(2 * (np.diag(d) - np.log(np.diag(d)) - 1))
+        gd = np.diag(gd);
+        # Argument of vecp in equation 8; multiplying from right to left     
+        X = np.dot(np.transpose(u), cl_f_12)
+        X = np.dot(gd, X)
+        X = np.dot(u, X)
+        X = np.dot(cl_f_12, X)
+        # This is the vector of equation 7  
+        Xall[l*nf_ind:(l+1)*nf_ind] = vecp(X)
+
+    return (Xall)
+
+def testL(cl_hat,cl_f, cl_th, Nf, M, Nmodes = None, sbin = None):
+    
+    '''
+    Input
+    ------------------------------
+    
+    cl_hat,cl_f, cl_th, Nf, M, Nmodes = None, sbin = None
+    '''
+    
+    Xa = (calc_vecp_test(cl_hat,  cl_f,cl_th, Nf = Nf))
+    
+    M_inv = LA.inv(M);
+    
+    if sbin is not None:
+        
+        nf_ind = int(Nf*(Nf+1)/2)
+        start = sbin*nf_ind
+        
+        Xa = Xa[start:]; 
+        M_inv = M_inv[start:,start:]
+        
+    Xa = np.matrix(Xa);
+    logL = -0.5*Xa*M_inv*np.transpose(Xa)  ## 1*1 matrix, use logL[0,0] to extract number 
+    return (logL[0,0])
