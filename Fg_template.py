@@ -2,7 +2,7 @@ from pysm.common import B as pf
 import numpy as np
 from pysm.common import convert_units
 
-def dust_ps(A_d, beta_d, lbin, nu = [95, 150], nu0 = 353, T_d = 19.6):
+def dust_ps(A_d, beta_d, lbin, nu = np.array([95, 150]), nu0 = 353, T_d = 19.6):
     
     '''
     Input
@@ -15,7 +15,7 @@ def dust_ps(A_d, beta_d, lbin, nu = [95, 150], nu0 = 353, T_d = 19.6):
     Cross power spectra for dust component, output in uK_CMB units.
     
     '''
-    Nf = len(nu); coeff = convert_units("uK_RJ", "uK_CMB", nu)
+    Nf = len(nu); coeff = convert_units("uK_RJ", "uK_CMB", nu);
     dl = np.ones((lbin, Nf, Nf));
     
     b0 = pf(nu0, T_d); b12 = pf(nu, T_d);    
@@ -35,15 +35,15 @@ def dust_ps(A_d, beta_d, lbin, nu = [95, 150], nu0 = 353, T_d = 19.6):
     return dl
 
 
-def sync_ps(A_s, beta_s, lbin, nu = [95, 150], nu0 = 30):
+def sync_ps(A_s, beta_s, lbin, nu = np.array([95, 150]), nu0 = 30):
     
-    Nf = len(nu);
+    Nf = len(nu); coeff = convert_units("uK_RJ", "uK_CMB", nu);
     sl = np.ones((lbin, Nf, Nf));
     
     for ell in range(lbin):
         
         for i in range(Nf): 
             for j in range(Nf):
-                sl[ell, i, j] = A_s[ell]*(nu[i]*nu[j]/nu0**2)**(beta_s)
+                sl[ell, i, j] = A_s[ell]*(nu[i]*nu[j]/nu0**2)**(beta_s)*coeff[i]*coeff[j] ;
                 
     return sl
