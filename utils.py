@@ -6,11 +6,26 @@ import numpy as np
 from numpy import linalg as LA
 from scipy.linalg import sqrtm
 
-#####################################################################  
-# Utility functions used to calculate the likelihood
-# for a given l bin.
+# def GenBB(r = 0.05, raw_cl = True):
+#     '''
+#     Generate the theoretical power spectra using camb
+#     '''
+    
+#     pars = camb.CAMBparams()
+#     pars.set_cosmology(H0=67.26, ombh2=0.022, omch2=0.1199, mnu=0.06, omk=0, tau=0.078)
+#     pars.InitPower.set_params(As=2.19856*1e-9, ns=0.9652, r = r)
+#     pars.set_for_lmax(3000, lens_potential_accuracy=1)
+#     pars.WantTensors = True
+    
+#     results = camb.get_results(pars)
+#     powers =results.get_cmb_power_spectra(pars, CMB_unit='muK', raw_cl=raw_cl)
+    
+#     totCL=powers['tensor'] ## TT EE BB TE
+# #     ell = np.arange(len(totCL.T[0]))
+#     return totCL.T[2]
 
-def Gencl(r = 0.05, raw_cl = True):
+
+def Gencl(r = 0.05, raw_cl = True, tensorBB_only = False):
     '''
     Generate the theoretical power spectra using camb
     '''
@@ -24,9 +39,16 @@ def Gencl(r = 0.05, raw_cl = True):
     results = camb.get_results(pars)
     powers =results.get_cmb_power_spectra(pars, CMB_unit='muK', raw_cl=raw_cl)
     
-    totCL=powers['total'] ## TT EE BB TE
-#     ell = np.arange(len(totCL.T[0]))
-    return totCL.T
+    if tensorBB_only:
+        totCL=powers['tensor'] ## TT EE BB TE
+        
+        return totCL.T[2]
+    
+    else: 
+        
+        totCL=powers['total'] ## TT EE BB TE
+
+        return totCL.T
 
 
 def l2(ell):
@@ -210,12 +232,14 @@ def testL(cl_hat,cl_f, cl_th, Nf, M, Nmodes = None, sbin = None):
     Input
     ------------------------------
     
-    cl_hat,cl_f, cl_th, Nf, M, Nmodes = None, sbin = None
+    cl_hat, lbin*Nf*Nf
+    cl_f, lbin*Nf*Nf
+    cl_th, Nf, M, Nmodes = None, sbin = None
     
     M: covariance of all X arrays, reordered to be a line for each Xall...
     '''
     
-    Xa = (calc_vecp_test(cl_hat,  cl_f,cl_th, Nf = Nf))
+    Xa = (calc_vecp_test(cl_hat, cl_f,cl_th, Nf = Nf))
     
     M_inv = LA.inv(M);
     
@@ -228,5 +252,9 @@ def testL(cl_hat,cl_f, cl_th, Nf, M, Nmodes = None, sbin = None):
         M_inv = M_inv[start:,start:]
         
     Xa = np.matrix(Xa);
-    logL = -0.5*Xa*M_inv*np.transpose(Xa)  ## 1*1 matrix, use logL[0,0] to extract number 
+    logL = -0.5*Xa*M_inv*np.transpose(Xa)  ## 1*1 matrix, use logL[0,0] to extract number
+    
+#     if np.isnan(logL[0,0]):
+#         logL[0,0] = -1e30
+        
     return (logL[0,0])
