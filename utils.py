@@ -203,18 +203,13 @@ def calc_vecp_test(cl_hat,cl_f, cl_th, Nf, Nmodes = None):
         cl_f_12 = sqrtm(cl_f[l])
         cl_inv = LA.pinv(cl_th[l])
         cl_inv_12= sqrtm(cl_inv)
-        # the order is inverted compared to matlab hamimeche_lewis_likelihood.m line 19
-
-        # line 20 of hamimeche_lewis_likelihood.m
+       
         res = np.dot(cl_inv_12, np.dot(cl_hat[l], cl_inv_12))
 
         [d, u] = LA.eigh(res)
-        d = np.diag(d)  # noticed that python returns the eigenvalues as a vector, not a matrix
-        #np. dot( u, np.dot( np.diag(d), LA.inv(u))) should be equals to res
-        # real symmetric matrices are diagnalized by orthogonal matrices (M^t M = 1)  
 
         # this makes a diagonal matrix by applying g(x) to the eigenvalues, equation 10 in Barkats et al
-        gd = np.sign(np.diag(d) - 1) * np.sqrt(2 * (np.diag(d) - np.log(np.diag(d)) - 1))
+        gd = np.sign(d - 1) * np.sqrt(2 * (d - np.log(d) - 1))
         gd = np.diag(gd);
         # Argument of vecp in equation 8; multiplying from right to left     
         X = np.dot(np.transpose(u), cl_f_12)
@@ -226,7 +221,7 @@ def calc_vecp_test(cl_hat,cl_f, cl_th, Nf, Nmodes = None):
 
     return (Xall)
 
-def testL(cl_hat,cl_f, cl_th, Nf, M, Nmodes = None, sbin = None):
+def testL(cl_hat,cl_f, cl_th, Nf, M, Nmodes = None, sbin = None, ebin = None):
     
     '''
     Input
@@ -234,7 +229,7 @@ def testL(cl_hat,cl_f, cl_th, Nf, M, Nmodes = None, sbin = None):
     
     cl_hat, lbin*Nf*Nf
     cl_f, lbin*Nf*Nf
-    cl_th, Nf, M, Nmodes = None, sbin = None
+    cl_th, Nf, M, Nmodes = None, sbin = None, ebin = None
     
     M: covariance of all X arrays, reordered to be a line for each Xall...
     '''
@@ -246,15 +241,17 @@ def testL(cl_hat,cl_f, cl_th, Nf, M, Nmodes = None, sbin = None):
     if sbin is not None:
         
         nf_ind = int(Nf*(Nf+1)/2)
-        start = sbin*nf_ind
+        start = sbin*nf_ind; end = ebin*nf_ind;
         
-        Xa = Xa[start:]; 
-        M_inv = M_inv[start:,start:]
+        Xa = Xa[start: end]; 
+        M_inv = M_inv[start:end,start:end]
+#         print(Xa.shape); 
+#         print(M_inv.shape);
         
     Xa = np.matrix(Xa);
     logL = -0.5*Xa*M_inv*np.transpose(Xa)  ## 1*1 matrix, use logL[0,0] to extract number
     
-#     if np.isnan(logL[0,0]):
-#         logL[0,0] = -1e30
+    if np.isnan(logL[0,0]):
+        logL[0,0] = -1e30
         
     return (logL[0,0])
