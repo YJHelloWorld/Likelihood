@@ -26,8 +26,8 @@ class BPE(object):
         self.b = nmt.NmtBin(self.nside, nlb=bin_w, lmax=self.lmax, is_Dell = True)
         
         self.ell_n = self.b.get_effective_ells(); self.lbin = len(self.ell_n)
-        self.w00 = [];
-        self.w02 = [];
+#         self.w00 = [];
+#         self.w02 = [];
         self.w22 = [];
                 
         # - To construct a empty template with a mask to calculate the **coupling matrix**
@@ -40,13 +40,13 @@ class BPE(object):
                 
                 beam_i = hp.gauss_beam(beams[i]/60/180*np.pi, lmax = 3*self.nside - 1);
                 
-                m0 = nmt.NmtField(self.mask,[qu[0]],purify_e=False, purify_b=True, beam = beam_i);
+#                 m0 = nmt.NmtField(self.mask,[qu[0]],purify_e=False, purify_b=True, beam = beam_i);
                 
-                # construct a workspace that calculate the coupling matrix first.
-                _w00 = nmt.NmtWorkspace()
-                _w00.compute_coupling_matrix(m0, m0, self.b)  ## spin-0 with spin-0
+#                 # construct a workspace that calculate the coupling matrix first.
+#                 _w00 = nmt.NmtWorkspace()
+#                 _w00.compute_coupling_matrix(m0, m0, self.b)  ## spin-0 with spin-0
                 
-                self.w00.append(_w00);
+#                 self.w00.append(_w00);
                 
                 for j in range(self.Nf):
                     
@@ -55,14 +55,15 @@ class BPE(object):
                     m20 = nmt.NmtField(self.mask, qu, purify_e=False, purify_b=True, beam = beam_i);
                     m21 = nmt.NmtField(self.mask, qu, purify_e=False, purify_b=True, beam = beam_j);
             
-                    _w02 = nmt.NmtWorkspace()
-                    _w02.compute_coupling_matrix(m0, m21, self.b)  ## spin-0 with spin-2
+#                     _w02 = nmt.NmtWorkspace()
+#                     _w02.compute_coupling_matrix(m0, m21, self.b)  ## spin-0 with spin-2
 
                     _w22 = nmt.NmtWorkspace()
                     _w22.compute_coupling_matrix(m20, m21, self.b)  ## spin-2 with spin-2
 
             
-                    self.w02.append(_w02); self.w22.append(_w22)
+#                     self.w02.append(_w02); 
+                    self.w22.append(_w22)
         
     def compute_master(self, f_a, f_b, wsp):
         
