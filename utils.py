@@ -221,7 +221,7 @@ def calc_vecp_test(cl_hat,cl_f, cl_th, Nf, Nmodes = None):
 
     return (Xall)
 
-def testL(cl_hat,cl_f, cl_th, Nf, M, Nmodes = None, sbin = None, ebin = None):
+def testL(cl_hat,cl_f, cl_th, Nf, M_inv, Nmodes = None, sbin = None, ebin = None):
     
     '''
     Input
@@ -236,7 +236,7 @@ def testL(cl_hat,cl_f, cl_th, Nf, M, Nmodes = None, sbin = None, ebin = None):
     
     Xa = (calc_vecp_test(cl_hat, cl_f,cl_th, Nf = Nf))
     
-    M_inv = LA.inv(M);
+#     M_inv = LA.inv(M);
     
     if sbin is not None:
         
