@@ -86,11 +86,6 @@ def calc_vecp(l,C_l_hat,C_fl, C_l):
 
     return (X)
 
-
-#def g(x):
-#    #  sign(x-1) \sqrt{ 2(x-ln(x) -1 }  
-#    return np.sign(x-1) * np.sqrt( 2* (x - np.log(x) -1) )
-
 def vecp(mat):
     '''
     This returns the unique elements of a symmetric matrix 
@@ -255,3 +250,45 @@ def testL(cl_hat,cl_f, cl_th, Nf, M_inv, Nmodes = None, sbin = None, ebin = None
         logL[0,0] = -1e30
         
     return (logL[0,0])
+
+
+##################################################
+#############  Gauss Likelihood  #################
+
+def vecp_jx(mat):
+    y = np.triu(mat, k = 0)
+    vecp_y = y[y != 0]
+    return vecp_y
+
+def calculate_vecp_ga(cl_hat, Nf):
+    
+    '''
+    Turn the matrix into X-form.
+    '''
+    lbin = len(cl_hat); nf_ind = int(Nf*(Nf+1)/2);
+    Xall = np.ones(lbin*nf_ind);
+    for l in range(lbin):
+        Xall[l*nf_ind:(l+1)*nf_ind] = vecp(cl_hat[l])
+    
+    return(Xall)
+
+
+##  -2lnL = (C_hat - C)*M^-1*(C_hat - C ^T)
+def simple_likelihood(cl_hat,cl_th, Nf, M_inv, sbin = None, ebin = None):
+    
+    Xa = calculate_vecp_ga(cl_hat - cl_th, Nf);
+#     M_inv = LA.inv(M);
+
+    if sbin is not None:
+        
+        nf_ind = int(Nf*(Nf+1)/2)
+        start = sbin*nf_ind; end = ebin*nf_ind;
+        
+        Xa = Xa[start: end]; 
+        M_inv = M_inv[start:end,start:end]
+    
+    Xa = np.matrix(Xa);
+    
+    logL = -0.5*Xa*M_inv*np.transpose(Xa)
+    
+    return(logL[0,0])

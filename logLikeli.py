@@ -18,6 +18,7 @@ from numpy import linalg as LA
 from utils import Marray_EEfirst as Marray
 from utils import Minv as Minv
 from utils import testL as testL
+from utils import simple_likelihood as simple_likelihood
 
 class logLike(object):
     
@@ -38,7 +39,7 @@ class logLike(object):
         self.cl_f = np.mean(cl_f_all, axis = 0) ## 3,lbin, Nf, Nf
                 
     
-    def run(self, cl_hat, cl_th, sbin = None, ebin = None):
+    def run(self, cl_hat, cl_th, likelihood = 'HL', sbin = None, ebin = None):
         
         '''
         cl_f and m_inv should be given or not given at the same time.
@@ -48,8 +49,14 @@ class logLike(object):
         '''
          
         # cl_hat,cl_f, cl_th, Nf, M,
-        
-        logL = testL(cl_hat = cl_hat, cl_f = self.cl_f[2], cl_th = cl_th, Nf = self.Nf, M_inv = self.Cov_inv, sbin = sbin, ebin = ebin)
+        if likelihood == 'HL':
+            logL = testL(cl_hat = cl_hat, cl_f = self.cl_f[2], cl_th = cl_th, Nf = self.Nf, M_inv = self.Cov_inv, sbin = sbin, ebin = ebin)
+            
+        elif likelihood == 'Gauss':
+            logL = simple_likelihood(cl_hat = cl_hat, cl_th = cl_th, Nf = self.Nf, M_inv = self.Cov_inv, sbin = sbin, ebin = ebin)
+            
+        else:
+            print('Only HL or Gauss likelihood are provided!')
         
         return logL
     
