@@ -12,7 +12,8 @@ class BPE(object):
         
         Define the **apodized mask**, **beam weights**, **nside**, **bin-scheme**, **ell**
         
-        Needs to be revised for the beam correction.
+        Needs to be revised for the beam correction. Different frequency have different sigma,
+        which may lead to different wsp...
         '''
         self.mask = nmt.mask_apodization(mask_in, 6, apotype='C2')
         
@@ -72,14 +73,28 @@ class BPE(object):
         
         return Cl
     
+    
+    def Auto_T(self, maps):
+        
+        '''
+        auto power spectum.
+        '''
+        t = nmt.NmtField(self.mask, [maps[0]])
+        
+        return self.compute_master(t, t, self.w00)
+    
     def Auto_TEB(self, maps):
         '''
         Calculate the auto-power spectra; 6 kinds of PS for each l-bin;
+        
+        Output
+        ------------------------
+        cls_all, with order TT TE TB EE EB BB.
         '''
         
         cls_all = np.ones((6, self.lbin))
         
-        t = nmt.NmtField(self.mask, [maps[0]], purify_e=False, purify_b=True)
+        t = nmt.NmtField(self.mask, [maps[0]], purify_e=False, purify_b=True) ### no need to purify?? 2020.07.03
         qu = nmt.NmtField(self.mask, maps[1:3], purify_e=False, purify_b=True)
         
         cls_all[0] = self.compute_master(t, t, self.w00); #TT

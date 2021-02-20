@@ -49,7 +49,7 @@ def Gencl(r = 0.05, raw_cl = True, tensorBB_only = False):
         totCL=powers['total'] ## TT EE BB TE
 
         return totCL.T
-
+    
 
 def l2(ell):
     '''
@@ -212,7 +212,7 @@ def calc_vecp_test(cl_hat,cl_f, cl_th, Nf, Nmodes = None):
         X = np.dot(u, X)
         X = np.dot(cl_f_12, X)
         # This is the vector of equation 7  
-        Xall[l*nf_ind:(l+1)*nf_ind] = vecp(X)
+        Xall[l*nf_ind:(l+1)*nf_ind] = vecp_jx(X)
 
     return (Xall)
 
@@ -260,15 +260,20 @@ def vecp_jx(mat):
     vecp_y = y[y != 0]
     return vecp_y
 
-def calculate_vecp_ga(cl_hat, Nf):
+def calculate_vecp_ga(cl_hat, Nf, vecp_f  = 'vecp'):
     
     '''
-    Turn the matrix into X-form.
+    Turn the matrix into X-form. For Gaussian-Likelihood.
     '''
+    if vecp_f == 'vecp':
+        vecp_in = vecp;
+    else:
+        vecp_in = vecp_jx;
+        
     lbin = len(cl_hat); nf_ind = int(Nf*(Nf+1)/2);
     Xall = np.ones(lbin*nf_ind);
     for l in range(lbin):
-        Xall[l*nf_ind:(l+1)*nf_ind] = vecp(cl_hat[l])
+        Xall[l*nf_ind:(l+1)*nf_ind] = vecp_in(cl_hat[l])
     
     return(Xall)
 

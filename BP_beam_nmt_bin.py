@@ -1,11 +1,11 @@
 import pymaster as nmt
 import healpy as hp
 import numpy as np
-import utils
+
 
 class BPE(object):
     
-    def __init__(self, mask_in, nside, bin_w, lmax, beams, wsp = True):
+    def __init__(self, mask_in, nside, bin_w, lmin, lmax, beams, wsp = True):
         
         '''
         class for Band-Power-Estimation;
@@ -15,15 +15,16 @@ class BPE(object):
         ------------------------
         beams : a numpy array which include fwhms for every frequency. Deconvolve to ** lmax=2*nside **
         
+      
         '''
-        
         self.mask = nmt.mask_apodization(mask_in, 6, apotype='C2')
         
         self.nside = nside; self.lmax = lmax; self.Nf = len(beams); self.beams = beams;
         
 #         self.beam = hp.gauss_beam(beams/60/180*np.pi, lmax = 3*self.nside); 
         
-        self.b = nmt.NmtBin(self.nside, nlb=bin_w, lmax=self.lmax, is_Dell = True)
+#         self.b = nmt.NmtBin(self.nside, nlb=bin_w, lmax=self.lmax, is_Dell = True)
+        self.b = self.bands(bin_w = bin_w, lmin = lmin, lmax = lmax);
         
         self.ell_n = self.b.get_effective_ells(); self.lbin = len(self.ell_n)
 #         self.w00 = [];
@@ -64,6 +65,18 @@ class BPE(object):
             
 #                     self.w02.append(_w02); 
                     self.w22.append(_w22)
+    
+    def bands(self, bin_w, lmin, lmax):
+        
+        ells = np.arange(self.nside, dtype='int32')  # Array of multipoles
+        weights = np.ones_like(ells)/bin_w  # Array of weights
+        bpws = -1 + np.zeros_like(ells)  # Array of bandpower indices
+        i = 0
+        while bin_w * (i + 1) + lmin < lmax:
+            bpws[bin_w * i + lmin: bin_w * (i+1) + lmin] = i
+            i += 1
+        return nmt.NmtBin(nside=self.nside, bpws=bpws, ells=ells, weights=weights, is_Dell=True, lmax = lmax)
+
         
     def compute_master(self, f_a, f_b, wsp):
         
@@ -89,43 +102,6 @@ class BPE(object):
             Cl[l] += Cl[l].T - np.diag(Cl[l].diagonal())
         
         return Cl
-    
-    
-    def Auto_T(self, maps):
-        
-        '''
-        auto power spectum.
-        '''
-        t = nmt.NmtField(self.mask, [maps[0]])
-        
-        return self.compute_master(t, t, self.w00)
-    
-    def Auto_TEB(self, maps, fwhm):
-        '''
-        Calculate the auto-power spectra; 6 kinds of PS for each l-bin;
-        
-        Output
-        ------------------------
-        cls_all, with order TT TE TB EE EB BB.
-        '''
-        
-        cls_all = np.ones((6, self.lbin))
-        
-        beam = hp.gauss_beam(fwhm/60/180*np.pi, lmax = 3*self.nside - 1)
-        t = nmt.NmtField(self.mask, [maps[0]], purify_e=False, purify_b=True, beam = beam) ### no need to purify?? 2020.07.03
-        qu = nmt.NmtField(self.mask, maps[1:3], purify_e=False, purify_b=True, beam = beam)
-        
-        cls_all[0] = nmt.compute_full_master(t, t, self.b); #TT
-        
-        cls_all[1:3] = nmt.compute_full_master(t, qu, self.b); #TE, TB
-
-        cls_EB = nmt.compute_full_master(qu,qu,self.b);
-        
-        cls_all[3] = cls_EB[0]; #EE
-        cls_all[4] = cls_EB[1]; #EB
-        cls_all[5] = cls_EB[3]; #BB
-        
-        return cls_all
     
     def Cross_EB(self, maps):
 
@@ -167,5 +143,3 @@ class BPE(object):
 #             Cl[0, l] += Cl[0, l].T - np.diag(Cl[0, l].diagonal()) ; Cl[1, l] += Cl[1, l].T - np.diag(Cl[1, l].diagonal()) 
 
         return Cl
-
-    

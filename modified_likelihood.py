@@ -47,7 +47,6 @@ def vecp(mat):
     return vec
 
 
-
 def calc_vecp_sub(cl_hat, fl_hat, cl_f, cl_th, Nf, Nmodes = None):
     '''
     Input
@@ -124,3 +123,8 @@ def testL_sub(cl_hat,fl_hat, cl_f, cl_th, Nf, M, Nmodes = None, sbin = None):
         logL[0,0] = -1e30
         
     return (logL[0,0])
+
+
+##  -2lnL = (C_hat - C)*M^-1*(C_hat - C ^T)
+def simple_likelihood():
+    pass

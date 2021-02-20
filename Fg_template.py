@@ -7,7 +7,7 @@ def dust_ps(A_d, beta_d, lbin, nu = np.array([95, 150]), nu0 = 353, T_d = 19.6):
     '''
     Input
     -------------------------
-    A_d : PS template at reference frequency at each lbin; input in **uK_RJ** units.
+    A_d : PS template at reference frequency at each lbin; Using Namaster within corresponding mask. Input in **uK_RJ** units.
     beta_d : spectra index to be determined from likelihood analyis.
     
     Output
